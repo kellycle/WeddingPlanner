@@ -1,0 +1,83 @@
+@* Lowercase model defines the type of data this page is sent. 
+Capital M model is to access the data
+This is the model for displaying:
+*@
+@model List<Wedding>
+@{
+    int? uid = @Context.Session.GetInt32("UserId");
+}
+@* To add the wedding form onto the dashboard, you can either change the model data type to Wedding and send in the list of Weddings via View.Bag 
+or by creating a new form partial, instantiating a new wedding on the dashboard view and then adding the partial *@
+<header>
+    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <div class="container">
+            <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">WeddingPlanner</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
+                <ul class="navbar-nav flex-grow-1">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-area="" asp-controller="Weddings" asp-action="Success">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Logout">Logout(@Context.Session.GetString("FirstName"))</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<h1>Welcome to the Wedding Planner</h1>
+
+<div class="col">
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-striped">
+                <tr>
+                    <th>Wedding</th>
+                    <th>Date</th>
+                    <th>Guest</th>
+                    <th>Action</th>
+                </tr>
+                @foreach(Wedding wedding in Model){
+                <tr>
+                    <td><a asp-controller="Weddings" asp-action="Details" asp-route-weddingId="@wedding.WeddingId">@wedding.WedderOne & @wedding.WedderTwo</a></td>
+                    <td>@wedding.Date.ToString("MMM dd, yyyy")</td>
+                    <td>@wedding.Attending.Count</td>
+                    @if (@wedding.CreatedBy.UserId == uid)
+                    {
+                        <td><form asp-controller="Weddings" asp-action="Delete" asp-route-weddingId="@wedding.WeddingId" method="POST">
+                        <button class="btn btn-outline-info">Delete</button>
+                        </form></td>
+                    } else if (@wedding.Attending.Any(a => a.UserId == uid))
+                    {
+                        <td><form asp-controller="Weddings" asp-action="Attend" asp-route-weddingId="@wedding.WeddingId" method="POST">
+                        <button class="btn btn-outline-info">Un-RSVP</button>
+                        </form></td>
+                    } else {
+                        <td><form asp-controller="Weddings" asp-action="Attend" asp-route-weddingId="@wedding.WeddingId" method="POST">
+                        <button class="btn btn-outline-info">RSVP</button>
+                        </form></td>
+                    }
+                </tr>
+                }
+            </table>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-11 text-right">
+        <a asp-controller="Weddings" asp-action="New" class="btn btn-outline-primary">New Wedding</a>
+    </div>
+</div>
+
+@{
+    Wedding newWedding = new Wedding();
+}
+
+<partial name="WeddingPartial" model="@newWedding"/>
+
+
